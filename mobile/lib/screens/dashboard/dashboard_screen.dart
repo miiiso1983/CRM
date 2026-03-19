@@ -33,7 +33,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ApiService.get('/meetings', params: {'status': 'scheduled', 'limit': '5'}),
       ]);
       setState(() {
-        _stats = results[0]['stats'] ?? results[0];
+        final dashData = results[0]['data'] ?? results[0];
+        _stats = dashData['summary'] ?? dashData['stats'] ?? dashData;
         _recentLeads = results[1]['leads'] ?? results[1]['data'] ?? [];
         _upcomingMeetings = results[2]['meetings'] ?? results[2]['data'] ?? [];
         _isLoading = false;
@@ -130,9 +131,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildStatsGrid() {
     final items = [
       {'label': 'إجمالي العملاء', 'key': 'total_leads', 'icon': Icons.people, 'color': Colors.blue},
-      {'label': 'عملاء جدد', 'key': 'new_leads', 'icon': Icons.person_add, 'color': Colors.green},
-      {'label': 'قيد المتابعة', 'key': 'follow_up_leads', 'icon': Icons.schedule, 'color': Colors.orange},
-      {'label': 'تم التعاقد', 'key': 'contracted_leads', 'icon': Icons.check_circle, 'color': Colors.teal},
+      {'label': 'عملاء هذا الشهر', 'key': 'this_month_leads', 'icon': Icons.person_add, 'color': Colors.green},
+      {'label': 'متابعات اليوم', 'key': 'today_follow_ups', 'icon': Icons.schedule, 'color': Colors.orange},
+      {'label': 'تم التعاقد', 'key': 'contracted', 'icon': Icons.check_circle, 'color': Colors.teal},
     ];
     return GridView.builder(
       shrinkWrap: true,

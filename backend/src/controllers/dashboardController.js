@@ -62,22 +62,27 @@ const getDashboard = async (req, res, next) => {
     // For admin: team performance
     let teamPerformance = [];
     if (user.role.name === 'admin') {
-      teamPerformance = await User.findAll({
-        attributes: [
-          'id', 'name',
-          [fn('COUNT', col('assignedLeads.id')), 'total_leads'],
-        ],
-        include: [{
-          model: Lead, as: 'assignedLeads',
-          attributes: [],
-          required: false,
-          where: { created_at: { [Op.between]: [startOfMonth, endOfMonth] } },
-        }],
-        group: ['User.id'],
-        order: [[fn('COUNT', col('assignedLeads.id')), 'DESC']],
-        limit: 10,
-        raw: false,
-      });
+      try {
+        teamPerformance = await User.findAll({
+          attributes: [
+            'id', 'name',
+            [literal('COUNT(`assignedLeads`.`id`)'), 'total_leads'],
+          ],
+          include: [{
+            model: Lead, as: 'assignedLeads',
+            attributes: [],
+            required: false,
+            where: { created_at: { [Op.between]: [startOfMonth, endOfMonth] } },
+          }],
+          group: ['User.id'],
+          order: [[literal('COUNT(`assignedLeads`.`id`)'), 'DESC']],
+          limit: 10,
+          raw: false,
+        });
+      } catch (e) {
+        console.error('Team performance query error:', e.message);
+        teamPerformance = [];
+      }
     }
 
     // Monthly trend (last 6 months)
