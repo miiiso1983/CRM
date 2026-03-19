@@ -110,7 +110,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
 
               // Status dropdown
               DropdownButtonFormField<String>(
-                value: _status,
+                initialValue: _status,
                 decoration: _decoration('الحالة', Icons.flag),
                 items: kStatusLabels.entries.map((e) =>
                   DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontFamily: 'Cairo')))).toList(),
@@ -120,7 +120,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
 
               // Priority dropdown
               DropdownButtonFormField<String>(
-                value: _priority,
+                initialValue: _priority,
                 decoration: _decoration('الأولوية', Icons.priority_high),
                 items: kPriorityLabels.entries.map((e) =>
                   DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontFamily: 'Cairo')))).toList(),

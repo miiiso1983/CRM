@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
 
 class ApiService {
-  static String _baseUrl = kBaseUrl;
+  static final String _baseUrl = kBaseUrl;
   static String? _token;
 
   static Future<void> init() async {
