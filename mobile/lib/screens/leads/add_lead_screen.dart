@@ -17,6 +17,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   final _phoneCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _companyCtrl = TextEditingController();
+  final _positionCtrl = TextEditingController();
   final _notesCtrl = TextEditingController();
   String _status = 'new';
   String _priority = 'medium';
@@ -33,6 +34,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
       _phoneCtrl.text = l['phone'] ?? '';
       _emailCtrl.text = l['email'] ?? '';
       _companyCtrl.text = l['company_name'] ?? '';
+      _positionCtrl.text = l['position'] ?? '';
       _notesCtrl.text = l['notes'] ?? '';
       _status = l['status'] ?? 'new';
       _priority = l['priority'] ?? 'medium';
@@ -42,7 +44,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
   @override
   void dispose() {
     _nameCtrl.dispose(); _phoneCtrl.dispose(); _emailCtrl.dispose();
-    _companyCtrl.dispose(); _notesCtrl.dispose();
+    _companyCtrl.dispose(); _positionCtrl.dispose(); _notesCtrl.dispose();
     super.dispose();
   }
 
@@ -55,6 +57,7 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
         'phone': _phoneCtrl.text.trim(),
         'email': _emailCtrl.text.trim(),
         'company_name': _companyCtrl.text.trim(),
+        'position': _positionCtrl.text.trim(),
         'notes': _notesCtrl.text.trim(),
         'status': _status,
         'priority': _priority,
@@ -106,6 +109,8 @@ class _AddLeadScreenState extends State<AddLeadScreen> {
               _buildField(_emailCtrl, 'البريد الإلكتروني', Icons.email, keyboardType: TextInputType.emailAddress),
               const SizedBox(height: 14),
               _buildField(_companyCtrl, 'اسم الشركة', Icons.business),
+              const SizedBox(height: 14),
+              _buildField(_positionCtrl, 'المنصب / الوظيفة', Icons.work),
               const SizedBox(height: 14),
 
               // Status dropdown

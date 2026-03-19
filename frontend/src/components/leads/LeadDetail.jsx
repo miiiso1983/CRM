@@ -52,6 +52,7 @@ export default function LeadDetail({ leadId, onClose, onUpdate }) {
           </a>
         </div>
         <div><label className="label text-xs">الشركة</label><p>{lead.company_name || '-'}</p></div>
+        <div><label className="label text-xs">المنصب</label><p>{lead.position || '-'}</p></div>
         <div><label className="label text-xs">البريد</label><p>{lead.email || '-'}</p></div>
         <div><label className="label text-xs">الحالة</label>
           <select

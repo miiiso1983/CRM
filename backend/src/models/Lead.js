@@ -24,6 +24,10 @@ const Lead = sequelize.define('Lead', {
     type: DataTypes.STRING(150),
     validate: { isEmail: true },
   },
+  position: {
+    type: DataTypes.STRING(150),
+    comment: 'Job title / position of the lead',
+  },
   status: {
     type: DataTypes.ENUM(
       'new',           // جديد

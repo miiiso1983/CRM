@@ -89,7 +89,7 @@ const searchByPhone = async (req, res, next) => {
 // @POST /api/leads
 const createLead = async (req, res, next) => {
   try {
-    const { phone, name, company_name, email, notes, source, priority, follow_up_date, first_contact_date } = req.body;
+    const { phone, name, company_name, email, position, notes, source, priority, follow_up_date, first_contact_date } = req.body;
 
     if (!phone || !name) return errorResponse(res, 'رقم الهاتف والاسم مطلوبان', 400);
 
@@ -105,7 +105,7 @@ const createLead = async (req, res, next) => {
     }
 
     const lead = await Lead.create({
-      phone: formattedPhone, name, company_name, email, notes, source, priority,
+      phone: formattedPhone, name, company_name, email, position, notes, source, priority,
       follow_up_date, first_contact_date: first_contact_date || new Date(),
       assigned_to: req.user.id, created_by: req.user.id, status: 'new', current_level: 1,
     });
@@ -246,6 +246,7 @@ const bulkCreateLeads = async (req, res, next) => {
       'notes': 'notes', 'ملاحظات': 'notes', 'note': 'notes',
       'source': 'source', 'المصدر': 'source',
       'priority': 'priority', 'الأولوية': 'priority',
+      'position': 'position', 'المنصب': 'position', 'الوظيفة': 'position', 'المسمى الوظيفي': 'position',
     };
 
     const results = { created: 0, duplicates: 0, errors: 0, details: [] };
@@ -286,6 +287,7 @@ const bulkCreateLeads = async (req, res, next) => {
           name: mapped.name,
           company_name: mapped.company_name || null,
           email: mapped.email || null,
+          position: mapped.position || null,
           notes: mapped.notes || null,
           source: mapped.source || 'bulk_upload',
           priority,

@@ -125,6 +125,7 @@ class _LeadDetailScreenState extends State<LeadDetailScreen> {
         InfoRow(label: 'الهاتف:', value: lead['phone'] ?? ''),
         if (lead['email'] != null) InfoRow(label: 'البريد:', value: lead['email']),
         if (lead['company_name'] != null) InfoRow(label: 'الشركة:', value: lead['company_name']),
+        if (lead['position'] != null) InfoRow(label: 'المنصب:', value: lead['position']),
         InfoRow(label: 'الأولوية:', value: kPriorityLabels[lead['priority']] ?? lead['priority'] ?? ''),
         if (lead['source'] != null) InfoRow(label: 'المصدر:', value: lead['source']),
         if (lead['assignee'] != null) InfoRow(label: 'المندوب:', value: lead['assignee']['name'] ?? ''),

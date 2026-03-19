@@ -66,6 +66,13 @@ export default function LeadForm({ onSuccess, initialData }) {
             {...register('email')} />
         </div>
 
+        {/* Position */}
+        <div>
+          <label className="label">المنصب / الوظيفة</label>
+          <input type="text" className="input-field" placeholder="مدير مبيعات، مهندس... (اختياري)"
+            {...register('position')} />
+        </div>
+
         {/* Priority */}
         <div>
           <label className="label">الأولوية</label>

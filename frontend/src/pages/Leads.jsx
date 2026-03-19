@@ -126,6 +126,7 @@ export default function Leads() {
                 <th className="text-right px-4 py-3 font-semibold text-gray-600">الاسم</th>
                 <th className="text-right px-4 py-3 font-semibold text-gray-600">رقم الهاتف</th>
                 <th className="text-right px-4 py-3 font-semibold text-gray-600">الشركة</th>
+                <th className="text-right px-4 py-3 font-semibold text-gray-600">المنصب</th>
                 <th className="text-right px-4 py-3 font-semibold text-gray-600">الحالة</th>
                 <th className="text-right px-4 py-3 font-semibold text-gray-600">الأولوية</th>
                 <th className="text-right px-4 py-3 font-semibold text-gray-600">المتابعة</th>
@@ -135,9 +136,9 @@ export default function Leads() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {isLoading ? (
-                <tr><td colSpan={8} className="py-8"><LoadingSpinner size="sm" /></td></tr>
+                <tr><td colSpan={9} className="py-8"><LoadingSpinner size="sm" /></td></tr>
               ) : leads.length === 0 ? (
-                <tr><td colSpan={8} className="py-12 text-center text-gray-400">لا توجد بيانات</td></tr>
+                <tr><td colSpan={9} className="py-12 text-center text-gray-400">لا توجد بيانات</td></tr>
               ) : (
                 leads.map(lead => (
                   <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
@@ -148,6 +149,7 @@ export default function Leads() {
                     </td>
                     <td className="px-4 py-3 font-mono text-gray-700">{formatPhone(lead.phone)}</td>
                     <td className="px-4 py-3 text-gray-600">{lead.company_name || '-'}</td>
+                    <td className="px-4 py-3 text-gray-600">{lead.position || '-'}</td>
                     <td className="px-4 py-3"><StatusBadge status={lead.status} /></td>
                     <td className="px-4 py-3"><PriorityBadge priority={lead.priority} /></td>
                     <td className="px-4 py-3 text-gray-600">{formatDate(lead.follow_up_date)}</td>

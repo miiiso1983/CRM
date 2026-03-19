@@ -33,8 +33,8 @@ export default function BulkUploadModal({ onSuccess }) {
   };
 
   const downloadTemplate = () => {
-    const headers = ['الاسم,رقم الهاتف,الشركة,البريد الإلكتروني,المصدر,الأولوية,ملاحظات'];
-    const sample = ['أحمد محمد,0512345678,شركة التقنية,ahmed@example.com,website,high,عميل مهتم'];
+    const headers = ['الاسم,رقم الهاتف,الشركة,المنصب,البريد الإلكتروني,المصدر,الأولوية,ملاحظات'];
+    const sample = ['أحمد محمد,0512345678,شركة التقنية,مدير مبيعات,ahmed@example.com,website,high,عميل مهتم'];
     const csv = '\uFEFF' + headers.join('\n') + '\n' + sample.join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -60,7 +60,7 @@ export default function BulkUploadModal({ onSuccess }) {
         </div>
         <div className="mt-3 text-xs text-blue-700 space-y-1">
           <p>• الأعمدة المطلوبة: <strong>الاسم</strong> و <strong>رقم الهاتف</strong></p>
-          <p>• الأعمدة الاختيارية: الشركة، البريد، المصدر، الأولوية (low/medium/high)، ملاحظات</p>
+          <p>• الأعمدة الاختيارية: الشركة، المنصب، البريد، المصدر، الأولوية (low/medium/high)، ملاحظات</p>
           <p>• الصيغ المدعومة: CSV, Excel (.xlsx, .xls)</p>
         </div>
       </div>
