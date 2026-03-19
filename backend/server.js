@@ -20,11 +20,21 @@ const dashboardRoutes = require('./src/routes/dashboard');
 const app = express();
 const httpServer = http.createServer(app);
 
+// ===================== ALLOWED ORIGINS =====================
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'https://phpstack-1492540-6293582.cloudwaysapps.com',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173',
+].filter(Boolean);
+
 // ===================== SOCKET.IO =====================
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
@@ -46,11 +56,7 @@ io.on('connection', (socket) => {
 // ===================== MIDDLEWARE =====================
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:5173',
-  ],
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
