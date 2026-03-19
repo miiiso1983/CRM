@@ -17,6 +17,11 @@ yarn.lock
 .env.*.local
 
 # ===========================
+# Deployment Config (private)
+# ===========================
+.deploy.config
+
+# ===========================
 # Build Outputs
 # ===========================
 frontend/dist/
