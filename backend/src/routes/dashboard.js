@@ -6,6 +6,7 @@ const { protect } = require('../middleware/auth');
 router.use(protect);
 
 router.get('/', getDashboard);
+router.get('/stats', getDashboard);
 router.get('/export', exportLeads);
 
 module.exports = router;
