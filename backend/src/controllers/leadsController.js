@@ -225,5 +225,90 @@ const getLead = async (req, res, next) => {
   }
 };
 
-module.exports = { getLeads, searchByPhone, createLead, updateLead, transferLead, addActivity, getLead };
+// @POST /api/leads/bulk-upload
+const bulkCreateLeads = async (req, res, next) => {
+  try {
+    if (!req.file) return errorResponse(res, 'يرجى رفع ملف CSV أو Excel', 400);
+
+    const XLSX = require('xlsx');
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+
+    if (!rows.length) return errorResponse(res, 'الملف فارغ', 400);
+
+    // Map common column names (Arabic & English)
+    const colMap = {
+      'phone': 'phone', 'هاتف': 'phone', 'رقم الهاتف': 'phone', 'الهاتف': 'phone', 'mobile': 'phone', 'الجوال': 'phone',
+      'name': 'name', 'الاسم': 'name', 'اسم': 'name', 'الاسم الكامل': 'name', 'full name': 'name',
+      'company': 'company_name', 'company_name': 'company_name', 'الشركة': 'company_name', 'اسم الشركة': 'company_name',
+      'email': 'email', 'البريد': 'email', 'الإيميل': 'email', 'البريد الإلكتروني': 'email',
+      'notes': 'notes', 'ملاحظات': 'notes', 'note': 'notes',
+      'source': 'source', 'المصدر': 'source',
+      'priority': 'priority', 'الأولوية': 'priority',
+    };
+
+    const results = { created: 0, duplicates: 0, errors: 0, details: [] };
+
+    for (let i = 0; i < rows.length; i++) {
+      const raw = rows[i];
+      const mapped = {};
+
+      // Map columns
+      for (const [key, val] of Object.entries(raw)) {
+        const normalizedKey = key.trim().toLowerCase();
+        const mappedKey = colMap[normalizedKey];
+        if (mappedKey) mapped[mappedKey] = String(val).trim();
+      }
+
+      // Validate required fields
+      if (!mapped.phone || !mapped.name) {
+        results.errors++;
+        results.details.push({ row: i + 2, phone: mapped.phone || '', name: mapped.name || '', status: 'error', message: 'الاسم ورقم الهاتف مطلوبان' });
+        continue;
+      }
+
+      try {
+        const formattedPhone = formatPhone(mapped.phone);
+        const existing = await Lead.findOne({ where: { phone: formattedPhone } });
+
+        if (existing) {
+          results.duplicates++;
+          results.details.push({ row: i + 2, phone: formattedPhone, name: mapped.name, status: 'duplicate', message: `مسجل مسبقاً (${existing.name})` });
+          continue;
+        }
+
+        const validPriorities = ['low', 'medium', 'high'];
+        const priority = validPriorities.includes(mapped.priority) ? mapped.priority : 'medium';
+
+        await Lead.create({
+          phone: formattedPhone,
+          name: mapped.name,
+          company_name: mapped.company_name || null,
+          email: mapped.email || null,
+          notes: mapped.notes || null,
+          source: mapped.source || 'bulk_upload',
+          priority,
+          assigned_to: req.user.id,
+          created_by: req.user.id,
+          status: 'new',
+          current_level: 1,
+          first_contact_date: new Date(),
+        });
+
+        results.created++;
+        results.details.push({ row: i + 2, phone: formattedPhone, name: mapped.name, status: 'created', message: 'تم الإضافة' });
+      } catch (err) {
+        results.errors++;
+        results.details.push({ row: i + 2, phone: mapped.phone, name: mapped.name, status: 'error', message: err.message });
+      }
+    }
+
+    return successResponse(res, { results }, `تم رفع ${results.created} عميل، ${results.duplicates} مكرر، ${results.errors} أخطاء`);
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getLeads, searchByPhone, createLead, updateLead, transferLead, addActivity, getLead, bulkCreateLeads };
 

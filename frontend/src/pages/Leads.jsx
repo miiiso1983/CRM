@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadsAPI, usersAPI } from '../api/axios';
-import { Plus, Phone, Search, Filter, Download, ArrowLeftRight } from 'lucide-react';
+import { Plus, Phone, Search, Filter, Download, ArrowLeftRight, Upload } from 'lucide-react';
 import { StatusBadge, PriorityBadge } from '../components/common/StatusBadge';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import Modal from '../components/common/Modal';
@@ -9,6 +9,7 @@ import SearchBar from '../components/common/SearchBar';
 import LeadForm from '../components/leads/LeadForm';
 import LeadDetail from '../components/leads/LeadDetail';
 import TransferModal from '../components/leads/TransferModal';
+import BulkUploadModal from '../components/leads/BulkUploadModal';
 import { formatDate, formatPhone } from '../utils/helpers';
 import useAuthStore from '../store/authStore';
 import toast from 'react-hot-toast';
@@ -23,6 +24,7 @@ export default function Leads() {
   const [transferLead, setTransferLead] = useState(null);
   const [showPhoneSearch, setShowPhoneSearch] = useState(false);
   const [phoneSearchResult, setPhoneSearchResult] = useState(null);
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['leads', filters],
@@ -57,9 +59,14 @@ export default function Leads() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {!isManager() && (
-            <button onClick={() => setShowCreateModal(true)} className="btn-primary">
-              <Plus size={16} /> إضافة عميل
-            </button>
+            <>
+              <button onClick={() => setShowBulkUpload(true)} className="btn-secondary flex items-center gap-1.5">
+                <Upload size={16} /> رفع جماعي
+              </button>
+              <button onClick={() => setShowCreateModal(true)} className="btn-primary">
+                <Plus size={16} /> إضافة عميل
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -191,6 +198,11 @@ export default function Leads() {
       {/* Transfer Modal */}
       <Modal isOpen={!!transferLead} onClose={() => setTransferLead(null)} title="تحويل العميل إلى المدير">
         {transferLead && <TransferModal lead={transferLead} onClose={() => setTransferLead(null)} onSuccess={() => { setTransferLead(null); queryClient.invalidateQueries(['leads']); }} />}
+      </Modal>
+
+      {/* Bulk Upload Modal */}
+      <Modal isOpen={showBulkUpload} onClose={() => setShowBulkUpload(false)} title="رفع العملاء بالجملة" size="lg">
+        <BulkUploadModal onSuccess={() => { queryClient.invalidateQueries(['leads']); }} />
       </Modal>
 
       {/* Phone Search Result Modal */}

@@ -62,6 +62,14 @@ export const leadsAPI = {
   transfer: (id, data) => api.post(`/leads/${id}/transfer`, data),
   addActivity: (id, data) => api.post(`/leads/${id}/activities`, data),
   searchByPhone: (phone) => api.get('/leads/search', { params: { phone } }),
+  bulkUpload: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/leads/bulk-upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
+    });
+  },
 };
 
 export const meetingsAPI = {
