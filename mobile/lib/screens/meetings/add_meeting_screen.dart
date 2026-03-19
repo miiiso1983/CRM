@@ -120,7 +120,7 @@ class _AddMeetingScreenState extends State<AddMeetingScreen> {
 
               // Lead selector
               DropdownButtonFormField<int?>(
-                initialValue: _selectedLeadId,
+                value: _selectedLeadId,
                 decoration: _decoration('العميل المرتبط', Icons.person),
                 items: [
                   const DropdownMenuItem(value: null, child: Text('بدون عميل', style: TextStyle(fontFamily: 'Cairo'))),
@@ -145,7 +145,7 @@ class _AddMeetingScreenState extends State<AddMeetingScreen> {
 
               // Meeting type
               DropdownButtonFormField<String>(
-                initialValue: _meetingType,
+                value: _meetingType,
                 decoration: _decoration('نوع الاجتماع', Icons.meeting_room),
                 items: const [
                   DropdownMenuItem(value: 'in_person', child: Text('حضوري', style: TextStyle(fontFamily: 'Cairo'))),
