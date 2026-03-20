@@ -13,8 +13,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'admin@alteam.com');
-  final _passwordController = TextEditingController(text: 'Admin@123');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
@@ -133,24 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: _login,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.blue[50],
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text('🔑 بيانات تجريبية:', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Cairo', fontSize: 12)),
-                              SizedBox(height: 4),
-                              Text('👑 مدير عام: admin@alteam.com / Admin@123', style: TextStyle(fontFamily: 'Cairo', fontSize: 11)),
-                              Text('👔 مدير: manager@alteam.com / Manager@123', style: TextStyle(fontFamily: 'Cairo', fontSize: 11)),
-                              Text('💼 مبيعات: sales1@alteam.com / Sales@123', style: TextStyle(fontFamily: 'Cairo', fontSize: 11)),
-                            ],
-                          ),
-                        ),
+
                       ],
                     ),
                   ),
