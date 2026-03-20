@@ -2,8 +2,8 @@
 // Use 'http://10.0.2.2:5001/api' for Android emulator
 // Use 'http://localhost:5001/api' for iOS simulator
 // Use your computer's IP for real devices: 'http://192.168.x.x:5001/api'
-const String kBaseUrl = 'http://localhost:5001/api';
-const String kSocketUrl = 'http://localhost:5001';
+const String kBaseUrl = 'https://phpstack-1492540-6293582.cloudwaysapps.com/srv';
+const String kSocketUrl = 'https://phpstack-1492540-6293582.cloudwaysapps.com';
 
 // Status Labels (Arabic)
 const Map<String, String> kStatusLabels = {
