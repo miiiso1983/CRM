@@ -28,7 +28,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() { _isLoading = true; _error = null; });
     try {
       final results = await Future.wait([
-        ApiService.get('/dashboard/stats'),
+        ApiService.get('/dashboard'),
         ApiService.get('/leads', params: {'limit': '5', 'page': '1'}),
         ApiService.get('/meetings', params: {'status': 'scheduled', 'limit': '5'}),
       ]);
