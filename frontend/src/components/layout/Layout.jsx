@@ -90,7 +90,7 @@ export default function Layout() {
             </button>
 
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-l from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+              <div className="w-8 h-8 bg-gradient-to-l from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white text-sm font-bold">
                 {user?.name?.charAt(0) || '?'}
               </div>
               <span className="hidden sm:block text-sm font-medium text-gray-700">{user?.name}</span>

@@ -107,7 +107,7 @@ export default function Users() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <UserCog size={22} className="text-blue-600" /> إدارة المستخدمين
+            <UserCog size={22} className="text-primary-500" /> إدارة المستخدمين
           </h1>
           <p className="text-sm text-gray-500">إجمالي: {data?.pagination?.total || 0} مستخدم</p>
         </div>

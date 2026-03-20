@@ -52,9 +52,9 @@ export default function BulkUploadModal({ onSuccess }) {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <p className="text-blue-800 font-semibold text-sm">📋 قالب الملف</p>
-            <p className="text-blue-600 text-xs mt-1">حمّل القالب واملأه ببيانات العملاء</p>
+            <p className="text-primary-500 text-xs mt-1">حمّل القالب واملأه ببيانات العملاء</p>
           </div>
-          <button onClick={downloadTemplate} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+          <button onClick={downloadTemplate} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-500 text-white rounded-lg text-sm hover:bg-primary-600">
             <Download size={14} /> تحميل القالب
           </button>
         </div>

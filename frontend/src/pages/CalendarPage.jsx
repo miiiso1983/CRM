@@ -36,7 +36,7 @@ export default function CalendarPage() {
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Calendar size={24} className="text-blue-600" /> التقويم
+          <Calendar size={24} className="text-primary-500" /> التقويم
         </h1>
         <p className="text-gray-500 text-sm">عرض الاجتماعات ومواعيد المتابعة</p>
       </div>
@@ -45,7 +45,7 @@ export default function CalendarPage() {
         <style>{`
           .fc { font-family: 'Cairo', sans-serif; direction: rtl; }
           .fc-toolbar-title { font-size: 1.1rem; font-weight: 700; }
-          .fc-button { background: linear-gradient(135deg, #2563eb, #7c3aed) !important; border: none !important; border-radius: 8px !important; }
+          .fc-button { background: linear-gradient(135deg, #2BB8B0, #1A6085) !important; border: none !important; border-radius: 8px !important; }
           .fc-button:hover { opacity: 0.9 !important; }
           .fc-event { border-radius: 6px !important; padding: 2px 4px !important; font-size: 0.75rem !important; }
           .fc-day-today { background-color: #eff6ff !important; }

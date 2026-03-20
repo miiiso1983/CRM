@@ -29,7 +29,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900 flex items-center justify-center p-4" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-primary-700 via-primary-600 to-primary-900 flex items-center justify-center p-4" dir="rtl">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/5 rounded-full" />
@@ -40,7 +40,7 @@ export default function Login() {
         {/* Card */}
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-l from-blue-600 to-purple-600 p-8 text-center">
+          <div className="bg-gradient-to-l from-primary-500 to-primary-700 p-8 text-center">
             <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Building2 size={32} className="text-white" />
             </div>

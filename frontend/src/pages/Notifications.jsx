@@ -49,10 +49,10 @@ export default function Notifications() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Bell size={22} className="text-blue-600" /> الإشعارات
+            <Bell size={22} className="text-primary-500" /> الإشعارات
           </h1>
           {unreadCount > 0 && (
-            <p className="text-sm text-blue-600">{unreadCount} إشعار غير مقروء</p>
+            <p className="text-sm text-primary-500">{unreadCount} إشعار غير مقروء</p>
           )}
         </div>
         <div className="flex gap-2">

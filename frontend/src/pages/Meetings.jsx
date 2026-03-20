@@ -25,7 +25,7 @@ function MeetingCard({ meeting, onUpdate }) {
       <div className="flex items-start justify-between mb-3">
         <div>
           <h3 className="font-bold text-gray-900">{meeting.title}</h3>
-          <p className="text-sm text-blue-600">{meeting.lead?.name} • {meeting.lead?.phone}</p>
+          <p className="text-sm text-primary-500">{meeting.lead?.name} • {meeting.lead?.phone}</p>
         </div>
         <span className={`badge ${statusColors[meeting.status]}`}>{MEETING_STATUS_LABELS[meeting.status]}</span>
       </div>
@@ -189,7 +189,7 @@ export default function Meetings() {
       <div className="flex gap-2 flex-wrap">
         {[['', 'الكل'], ['scheduled', 'مجدول'], ['completed', 'مكتمل'], ['cancelled', 'ملغي']].map(([val, label]) => (
           <button key={val} onClick={() => setFilters(f => ({ ...f, status: val }))}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filters.status === val ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border hover:bg-gray-50'}`}>
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filters.status === val ? 'bg-primary-500 text-white' : 'bg-white text-gray-600 border hover:bg-gray-50'}`}>
             {label}
           </button>
         ))}

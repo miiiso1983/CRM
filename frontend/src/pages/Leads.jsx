@@ -72,9 +72,9 @@ export default function Leads() {
       </div>
 
       {/* Phone Search Banner */}
-      <div className="card bg-gradient-to-l from-blue-50 to-purple-50 border-blue-200">
+      <div className="card bg-gradient-to-l from-primary-50 to-primary-100 border-primary-200">
         <div className="flex items-center gap-3 flex-wrap">
-          <Phone size={20} className="text-blue-600" />
+          <Phone size={20} className="text-primary-500" />
           <span className="font-semibold text-gray-700">البحث برقم الهاتف:</span>
           <div className="flex gap-2 flex-1 min-w-0">
             <input
@@ -143,7 +143,7 @@ export default function Leads() {
                 leads.map(lead => (
                   <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
-                      <button onClick={() => setSelectedLead(lead)} className="font-medium text-blue-600 hover:underline text-right">
+                      <button onClick={() => setSelectedLead(lead)} className="font-medium text-primary-500 hover:underline text-right">
                         {lead.name}
                       </button>
                     </td>

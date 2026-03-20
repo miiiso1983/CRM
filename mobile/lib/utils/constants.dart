@@ -59,6 +59,6 @@ const Map<String, String> kMeetingStatusLabels = {
 };
 
 // Theme Colors
-const kPrimaryBlue = 0xFF2563EB;
-const kPrimaryPurple = 0xFF7C3AED;
+const kPrimaryBlue = 0xFF2BB8B0;   // Brand Teal
+const kPrimaryPurple = 0xFF1A6085; // Brand Dark Blue
 

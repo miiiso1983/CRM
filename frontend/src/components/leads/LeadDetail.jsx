@@ -47,7 +47,7 @@ export default function LeadDetail({ leadId, onClose, onUpdate }) {
       <div className="grid grid-cols-2 gap-4">
         <div><label className="label text-xs">الاسم</label><p className="font-semibold">{lead.name}</p></div>
         <div><label className="label text-xs">رقم الهاتف</label>
-          <a href={`tel:${lead.phone}`} className="font-mono text-blue-600 flex items-center gap-1 hover:underline">
+          <a href={`tel:${lead.phone}`} className="font-mono text-primary-500 flex items-center gap-1 hover:underline">
             <Phone size={14} />{lead.phone}
           </a>
         </div>

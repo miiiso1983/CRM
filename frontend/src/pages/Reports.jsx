@@ -43,7 +43,7 @@ export default function Reports() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <BarChart3 size={24} className="text-blue-600" /> التقارير والإحصائيات
+            <BarChart3 size={24} className="text-primary-500" /> التقارير والإحصائيات
           </h1>
           <p className="text-gray-500 text-sm mt-1">نظرة شاملة على أداء الفريق والمبيعات</p>
         </div>
@@ -77,7 +77,7 @@ export default function Reports() {
         {/* Monthly Trend */}
         <div className="card">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <TrendingUp size={18} className="text-blue-600" /> الاتجاه الشهري
+            <TrendingUp size={18} className="text-primary-500" /> الاتجاه الشهري
           </h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={monthlyTrend}>
@@ -85,8 +85,8 @@ export default function Reports() {
               <XAxis dataKey="month" tick={{ fontSize: 11, fontFamily: 'Cairo' }} />
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip formatter={(v) => [v, 'عميل']} />
-              <Line type="monotone" dataKey="count" stroke="#2563eb" strokeWidth={2.5}
-                dot={{ fill: '#2563eb', r: 4 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="count" stroke="#2BB8B0" strokeWidth={2.5}
+                dot={{ fill: '#2BB8B0', r: 4 }} activeDot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -124,7 +124,7 @@ export default function Reports() {
       {teamPerformance.length > 0 && (
         <div className="card">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Users size={18} className="text-purple-600" /> أداء الفريق
+            <Users size={18} className="text-primary-700" /> أداء الفريق
           </h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={teamPerformance} layout="vertical">

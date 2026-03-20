@@ -79,8 +79,8 @@ export default function Dashboard() {
               <Bar dataKey="count" fill="url(#gradient)" radius={[4, 4, 0, 0]} />
               <defs>
                 <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.9} />
-                  <stop offset="95%" stopColor="#7c3aed" stopOpacity={0.9} />
+                  <stop offset="5%" stopColor="#2BB8B0" stopOpacity={0.9} />
+                  <stop offset="95%" stopColor="#1A6085" stopOpacity={0.9} />
                 </linearGradient>
               </defs>
             </BarChart>
@@ -121,14 +121,14 @@ export default function Dashboard() {
         {/* Upcoming Meetings */}
         <div className="card">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Calendar size={18} className="text-blue-600" /> الاجتماعات القادمة
+            <Calendar size={18} className="text-primary-500" /> الاجتماعات القادمة
           </h3>
           {upcomingMeetings.length > 0 ? (
             <div className="space-y-3">
               {upcomingMeetings.map(m => (
                 <div key={m.id} className="flex items-start gap-3 p-3 bg-blue-50 rounded-xl">
                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Calendar size={14} className="text-blue-600" />
+                    <Calendar size={14} className="text-primary-500" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm text-gray-900 truncate">{m.title}</p>
@@ -145,7 +145,7 @@ export default function Dashboard() {
         {/* Recent Activities */}
         <div className="card">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Phone size={18} className="text-purple-600" /> آخر الأنشطة
+            <Phone size={18} className="text-primary-700" /> آخر الأنشطة
           </h3>
           {recentActivities.length > 0 ? (
             <div className="space-y-3">
