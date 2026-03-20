@@ -63,22 +63,18 @@ const getDashboard = async (req, res, next) => {
     let teamPerformance = [];
     if (user.role.name === 'admin') {
       try {
-        teamPerformance = await User.findAll({
-          attributes: [
-            'id', 'name',
-            [literal('COUNT(`assignedLeads`.`id`)'), 'total_leads'],
-          ],
-          include: [{
-            model: Lead, as: 'assignedLeads',
-            attributes: [],
-            required: false,
-            where: { created_at: { [Op.between]: [startOfMonth, endOfMonth] } },
-          }],
-          group: ['User.id'],
-          order: [[literal('COUNT(`assignedLeads`.`id`)'), 'DESC']],
-          limit: 10,
-          raw: false,
+        const [rows] = await sequelize.query(`
+          SELECT u.id, u.name, COUNT(l.id) as total_leads
+          FROM users u
+          LEFT JOIN leads l ON l.assigned_to = u.id
+            AND l.created_at BETWEEN :startOfMonth AND :endOfMonth
+          GROUP BY u.id, u.name
+          ORDER BY total_leads DESC
+          LIMIT 10
+        `, {
+          replacements: { startOfMonth, endOfMonth },
         });
+        teamPerformance = rows;
       } catch (e) {
         console.error('Team performance query error:', e.message);
         teamPerformance = [];
