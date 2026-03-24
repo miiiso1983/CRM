@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { User, Role } = require('../models');
+const { getRoleKey, getRoleLevel } = require('../utils/roles');
 
 const protect = async (req, res, next) => {
   try {
@@ -48,10 +49,12 @@ const authorize = (...roles) => {
       });
     }
 
-    if (!roles.includes(req.user.role.name)) {
+    const userRole = getRoleKey(req.user);
+
+    if (!roles.includes(userRole)) {
       return res.status(403).json({
         success: false,
-        message: `الدور ${req.user.role.name_ar} غير مصرح له بهذا الإجراء`,
+        message: `الدور ${req.user.role.name_ar || userRole} غير مصرح له بهذا الإجراء`,
       });
     }
 
@@ -66,7 +69,7 @@ const minLevel = (level) => {
       return res.status(403).json({ success: false, message: 'غير مصرح' });
     }
 
-    if (req.user.role.level < level) {
+    if (getRoleLevel(req.user) < level) {
       return res.status(403).json({
         success: false,
         message: 'ليس لديك الصلاحية الكافية لهذا الإجراء',

@@ -94,6 +94,7 @@ export const usersAPI = {
   update: (id, data) => api.put(`/users/${id}`, data),
   delete: (id) => api.delete(`/users/${id}`),
   getManagers: () => api.get('/users/managers'),
+  getRoles: () => api.get('/users/roles'),
 };
 
 export const dashboardAPI = {

@@ -2,6 +2,7 @@ const { Op, fn, col } = require('sequelize');
 const { sequelize } = require('../config/database');
 const { Lead, User, Meeting, LeadActivity } = require('../models');
 const { successResponse } = require('../utils/helpers');
+const { getRoleKey, hasRole } = require('../utils/roles');
 
 // @GET /api/dashboard
 const getDashboard = async (req, res, next) => {
@@ -12,9 +13,10 @@ const getDashboard = async (req, res, next) => {
     const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     const todayDate = now.toISOString().split('T')[0];
     const where = {};
+    const roleKey = getRoleKey(user);
 
-    if (user.role.name === 'sales') where.assigned_to = user.id;
-    else if (user.role.name === 'manager') where.manager_id = user.id;
+    if (roleKey === 'sales') where.assigned_to = user.id;
+    else if (roleKey === 'manager') where.manager_id = user.id;
 
     // Lead counts by status
     const leadStats = await Lead.findAll({
@@ -35,7 +37,7 @@ const getDashboard = async (req, res, next) => {
     // Upcoming meetings
     const upcomingMeetings = await Meeting.findAll({
       where: {
-        ...(user.role.name === 'manager' ? { scheduled_by: user.id } : {}),
+        ...(roleKey === 'manager' ? { scheduled_by: user.id } : {}),
         meeting_date: { [Op.gte]: now },
         status: 'scheduled',
       },
@@ -51,8 +53,8 @@ const getDashboard = async (req, res, next) => {
 
     // Direct subordinates performance for managers/admins
     let subordinateStats = [];
-    if (['manager', 'admin'].includes(user.role.name)) {
-      const isManager = user.role.name === 'manager';
+    if (hasRole(user, 'manager', 'admin')) {
+      const isManager = roleKey === 'manager';
       const subordinateWhereClause = isManager
         ? `
           AND (
@@ -134,14 +136,14 @@ const getDashboard = async (req, res, next) => {
         { model: Lead, as: 'lead', attributes: ['id', 'name', 'phone'] },
         { model: User, as: 'user', attributes: ['id', 'name'] },
       ],
-      where: user.role.name === 'sales' ? { user_id: user.id } : {},
+      where: roleKey === 'sales' ? { user_id: user.id } : {},
       order: [['created_at', 'DESC']],
       limit: 10,
     });
 
     // For admin: team performance
     let teamPerformance = [];
-    if (user.role.name === 'admin') {
+    if (roleKey === 'admin') {
       try {
         const [rows] = await sequelize.query(`
           SELECT u.id, u.name, COUNT(l.id) as total_leads
@@ -204,9 +206,10 @@ const exportLeads = async (req, res, next) => {
     const xlsx = require('xlsx');
     const user = req.user;
     const where = {};
+    const roleKey = getRoleKey(user);
 
-    if (user.role.name === 'sales') where.assigned_to = user.id;
-    else if (user.role.name === 'manager') where.manager_id = user.id;
+    if (roleKey === 'sales') where.assigned_to = user.id;
+    else if (roleKey === 'manager') where.manager_id = user.id;
 
     const leads = await Lead.findAll({
       where,

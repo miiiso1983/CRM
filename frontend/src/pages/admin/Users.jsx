@@ -6,7 +6,6 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Modal from '../../components/common/Modal';
 import { RoleBadge } from '../../components/common/StatusBadge';
 import { useForm } from 'react-hook-form';
-import { useQuery as useRolesQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
 function UserForm({ onSuccess, initialData }) {
@@ -14,16 +13,25 @@ function UserForm({ onSuccess, initialData }) {
   const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues: initialData || {} });
 
   const { data: managersData } = useQuery({ queryKey: ['managers'], queryFn: usersAPI.getManagers });
+  const { data: rolesData } = useQuery({ queryKey: ['roles'], queryFn: usersAPI.getRoles });
   const managers = managersData?.data || [];
+  const roles = rolesData?.data || [];
 
   const onSubmit = async (data) => {
     setLoading(true);
+
+    const payload = {
+      ...data,
+      role_id: data.role_id ? parseInt(data.role_id, 10) : data.role_id,
+      manager_id: data.manager_id ? parseInt(data.manager_id, 10) : null,
+    };
+
     try {
       if (initialData?.id) {
-        await usersAPI.update(initialData.id, data);
+        await usersAPI.update(initialData.id, payload);
         toast.success('تم تحديث المستخدم');
       } else {
-        await usersAPI.create(data);
+        await usersAPI.create(payload);
         toast.success('تم إنشاء المستخدم');
       }
       onSuccess?.();
@@ -60,9 +68,11 @@ function UserForm({ onSuccess, initialData }) {
           <label className="label">الدور *</label>
           <select className="input-field" {...register('role_id', { required: 'الدور مطلوب' })}>
             <option value="">اختر الدور</option>
-            <option value="1">مدير عام (Level 3)</option>
-            <option value="2">مدير مباشر (Level 2)</option>
-            <option value="3">مندوب مبيعات (Level 1)</option>
+            {roles.map(role => (
+              <option key={role.id} value={role.id}>
+                {role.name_ar} (Level {role.level})
+              </option>
+            ))}
           </select>
           {errors.role_id && <p className="text-red-500 text-xs mt-1">{errors.role_id.message}</p>}
         </div>

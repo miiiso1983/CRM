@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const { Lead, User, LeadActivity, Meeting, Role } = require('../models');
 const { paginate, paginateResponse, formatPhone, successResponse, errorResponse } = require('../utils/helpers');
+const { getRoleKey } = require('../utils/roles');
 const { createNotification } = require('./notificationsController');
 
 // @GET /api/leads
@@ -10,11 +11,12 @@ const getLeads = async (req, res, next) => {
     const { limit: lim, offset } = paginate(page, limit);
     const user = req.user;
     const whereClause = {};
+    const roleKey = getRoleKey(user);
 
     // Role-based filtering
-    if (user.role.name === 'sales') {
+    if (roleKey === 'sales') {
       whereClause.assigned_to = user.id;
-    } else if (user.role.name === 'manager') {
+    } else if (roleKey === 'manager') {
       whereClause.manager_id = user.id;
     }
     // admin sees all
@@ -128,7 +130,7 @@ const updateLead = async (req, res, next) => {
     if (!lead) return errorResponse(res, 'العميل غير موجود', 404);
 
     const user = req.user;
-    if (user.role.name === 'sales' && lead.assigned_to !== user.id) {
+    if (getRoleKey(user) === 'sales' && lead.assigned_to !== user.id) {
       return errorResponse(res, 'ليس لديك صلاحية تعديل هذا العميل', 403);
     }
 
@@ -158,7 +160,7 @@ const transferLead = async (req, res, next) => {
     const { manager_id } = req.body;
     const manager = await User.findOne({
       where: { id: manager_id },
-      include: [{ model: Role, as: 'role', where: { name: 'manager' } }],
+      include: [{ model: Role, as: 'role', where: { level: 2 } }],
     });
 
     if (!manager) return errorResponse(res, 'المدير غير موجود', 404);

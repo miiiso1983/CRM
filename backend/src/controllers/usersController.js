@@ -1,6 +1,53 @@
 const { User, Role, Lead } = require('../models');
 const { successResponse, errorResponse, paginate, paginateResponse } = require('../utils/helpers');
+const { getRoleLevel } = require('../utils/roles');
 const { Op } = require('sequelize');
+
+const normalizeOptionalId = (value) => {
+  if (value === undefined) return undefined;
+  if (value === null || value === '') return null;
+
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : NaN;
+};
+
+const validateRoleAndManager = async ({ role_id, manager_id }) => {
+  const normalizedRoleId = normalizeOptionalId(role_id);
+  const normalizedManagerId = normalizeOptionalId(manager_id);
+
+  if (!Number.isInteger(normalizedRoleId)) {
+    return { error: 'الدور المحدد غير صالح' };
+  }
+
+  const role = await Role.findByPk(normalizedRoleId);
+  if (!role) {
+    return { error: 'الدور المحدد غير موجود' };
+  }
+
+  if (Number.isNaN(normalizedManagerId)) {
+    return { error: 'معرّف المدير غير صالح' };
+  }
+
+  if (normalizedManagerId) {
+    const manager = await User.findByPk(normalizedManagerId, {
+      include: [{ model: Role, as: 'role' }],
+    });
+
+    if (!manager || !manager.is_active) {
+      return { error: 'المدير المحدد غير موجود أو غير نشط' };
+    }
+
+    if (getRoleLevel(manager) < 2) {
+      return { error: 'المدير المباشر يجب أن يكون مديراً أو مديراً عاماً' };
+    }
+  }
+
+  return {
+    role,
+    normalizedRoleId,
+    normalizedManagerId,
+  };
+};
 
 // @GET /api/users
 const getUsers = async (req, res, next) => {
@@ -50,7 +97,17 @@ const createUser = async (req, res, next) => {
     const existing = await User.findOne({ where: { email } });
     if (existing) return errorResponse(res, 'البريد الإلكتروني مسجل مسبقاً', 409);
 
-    const user = await User.create({ name, email, password, phone, role_id, manager_id });
+    const { error, normalizedRoleId, normalizedManagerId } = await validateRoleAndManager({ role_id, manager_id });
+    if (error) return errorResponse(res, error, 400);
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      phone,
+      role_id: normalizedRoleId,
+      manager_id: normalizedManagerId ?? null,
+    });
 
     const userWithRole = await User.findByPk(user.id, {
       include: [{ model: Role, as: 'role' }],
@@ -88,6 +145,20 @@ const updateUser = async (req, res, next) => {
     const { password, ...updateData } = req.body;
     if (password) updateData.password = password;
 
+    if (Object.prototype.hasOwnProperty.call(updateData, 'role_id') || Object.prototype.hasOwnProperty.call(updateData, 'manager_id')) {
+      const { error, normalizedRoleId, normalizedManagerId } = await validateRoleAndManager({
+        role_id: updateData.role_id ?? user.role_id,
+        manager_id: Object.prototype.hasOwnProperty.call(updateData, 'manager_id') ? updateData.manager_id : user.manager_id,
+      });
+
+      if (error) return errorResponse(res, error, 400);
+
+      if (normalizedRoleId !== undefined) updateData.role_id = normalizedRoleId;
+      if (Object.prototype.hasOwnProperty.call(updateData, 'manager_id')) {
+        updateData.manager_id = normalizedManagerId;
+      }
+    }
+
     await user.update(updateData);
     const updated = await User.findByPk(user.id, { include: [{ model: Role, as: 'role' }] });
     return successResponse(res, { data: updated }, 'تم تحديث المستخدم بنجاح');
@@ -114,12 +185,11 @@ const deleteUser = async (req, res, next) => {
 // @GET /api/users/managers
 const getManagers = async (req, res, next) => {
   try {
-    const managerRole = await Role.findOne({ where: { name: 'manager' } });
-    if (!managerRole) return successResponse(res, { data: [] });
-
     const managers = await User.findAll({
-      where: { role_id: managerRole.id, is_active: true },
+      where: { is_active: true },
+      include: [{ model: Role, as: 'role', where: { level: { [Op.gte]: 2 } } }],
       attributes: ['id', 'name', 'email', 'phone'],
+      order: [['name', 'ASC']],
     });
 
     return successResponse(res, { data: managers });
@@ -128,5 +198,19 @@ const getManagers = async (req, res, next) => {
   }
 };
 
-module.exports = { getUsers, createUser, getUser, updateUser, deleteUser, getManagers };
+// @GET /api/users/roles
+const getRoles = async (req, res, next) => {
+  try {
+    const roles = await Role.findAll({
+      attributes: ['id', 'name', 'name_ar', 'level'],
+      order: [['level', 'DESC'], ['id', 'ASC']],
+    });
+
+    return successResponse(res, { data: roles });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getUsers, createUser, getUser, updateUser, deleteUser, getManagers, getRoles };
 

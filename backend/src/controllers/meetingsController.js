@@ -1,6 +1,7 @@
 const { Meeting, Lead, User, LeadActivity } = require('../models');
 const { paginate, paginateResponse, successResponse, errorResponse } = require('../utils/helpers');
 const { createNotification } = require('./notificationsController');
+const { getRoleKey } = require('../utils/roles');
 const { Op } = require('sequelize');
 
 // @GET /api/meetings
@@ -10,10 +11,11 @@ const getMeetings = async (req, res, next) => {
     const { limit: lim, offset } = paginate(page, limit);
     const user = req.user;
     const where = {};
+    const roleKey = getRoleKey(user);
 
-    if (user.role.name === 'manager') {
+    if (roleKey === 'manager') {
       where.scheduled_by = user.id;
-    } else if (user.role.name === 'sales') {
+    } else if (roleKey === 'sales') {
       // Sales can see meetings for their leads
       const salesLeads = await Lead.findAll({ where: { assigned_to: user.id }, attributes: ['id'] });
       where.lead_id = { [Op.in]: salesLeads.map(l => l.id) };
@@ -95,7 +97,7 @@ const updateMeeting = async (req, res, next) => {
     const meeting = await Meeting.findByPk(req.params.id);
     if (!meeting) return errorResponse(res, 'الاجتماع غير موجود', 404);
 
-    if (meeting.scheduled_by !== req.user.id && req.user.role.name !== 'admin') {
+    if (meeting.scheduled_by !== req.user.id && getRoleKey(req.user) !== 'admin') {
       return errorResponse(res, 'ليس لديك صلاحية تعديل هذا الاجتماع', 403);
     }
 
@@ -121,7 +123,7 @@ const getCalendarEvents = async (req, res, next) => {
     const user = req.user;
     const where = {};
 
-    if (user.role.name === 'manager') where.scheduled_by = user.id;
+    if (getRoleKey(user) === 'manager') where.scheduled_by = user.id;
 
     if (start && end) {
       where.meeting_date = { [Op.between]: [new Date(start), new Date(end)] };
