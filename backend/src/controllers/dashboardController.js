@@ -52,12 +52,27 @@ const getDashboard = async (req, res, next) => {
     // Direct subordinates performance for managers/admins
     let subordinateStats = [];
     if (['manager', 'admin'].includes(user.role.name)) {
-      const subordinateWhereClause = user.role.name === 'manager' ? 'AND u.manager_id = :managerId' : '';
+      const isManager = user.role.name === 'manager';
+      const subordinateWhereClause = isManager
+        ? `
+          AND (
+            u.manager_id = :managerId
+            OR EXISTS (
+              SELECT 1
+              FROM leads manager_leads
+              WHERE manager_leads.assigned_to = u.id
+                AND manager_leads.manager_id = :managerId
+            )
+          )
+        `
+        : '';
+      const callsManagerFilter = isManager ? 'AND l.manager_id = :managerId' : '';
+      const leadsManagerFilter = isManager ? 'AND manager_id = :managerId' : '';
       const replacements = {
         todayDate,
         startOfMonth,
         startOfNextMonth,
-        ...(user.role.name === 'manager' ? { managerId: user.id } : {}),
+        ...(isManager ? { managerId: user.id } : {}),
       };
 
       const [rows] = await sequelize.query(`
@@ -74,11 +89,14 @@ const getDashboard = async (req, res, next) => {
         INNER JOIN roles r ON r.id = u.role_id AND r.name = 'sales'
         LEFT JOIN (
           SELECT
-            user_id,
+            la.user_id,
             COUNT(*) AS calls_today
-          FROM lead_activities
-          WHERE type = 'call' AND DATE(created_at) = :todayDate
-          GROUP BY user_id
+          FROM lead_activities la
+          INNER JOIN leads l ON l.id = la.lead_id
+          WHERE la.type = 'call'
+            AND DATE(la.created_at) = :todayDate
+            ${callsManagerFilter}
+          GROUP BY la.user_id
         ) c ON c.user_id = u.id
         LEFT JOIN (
           SELECT
@@ -90,6 +108,7 @@ const getDashboard = async (req, res, next) => {
             COUNT(*) AS total_assigned_leads
           FROM leads
           WHERE assigned_to IS NOT NULL
+          ${leadsManagerFilter}
           GROUP BY assigned_to
         ) ls ON ls.assigned_to = u.id
         WHERE u.is_active = 1

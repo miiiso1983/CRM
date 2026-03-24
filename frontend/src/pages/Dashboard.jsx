@@ -111,7 +111,8 @@ export default function Dashboard() {
   const recentActivities = data?.data?.recent_activities || [];
   const upcomingMeetings = data?.data?.upcoming_meetings || [];
   const subordinateStats = data?.data?.subordinate_stats || [];
-  const canViewSubordinateStats = ['manager', 'admin'].includes(user?.role?.name);
+  const roleName = user?.role?.name?.toLowerCase?.() || '';
+  const canViewSubordinateStats = ['manager', 'admin'].includes(roleName) || Number(user?.role?.level || 0) >= 2;
 
   const pieData = leadStats.map(item => ({
     name: STATUS_LABELS[item.status] || item.status,
