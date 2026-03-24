@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Users, Phone, TrendingUp, Calendar, AlertCircle, CheckCircle } from 'lucide-react';
 import { STATUS_LABELS } from '../utils/constants';
 import { formatDateTime } from '../utils/helpers';
-import useAuthStore from '../store/authStore';
+import useAuthStore, { getRoleKey } from '../store/authStore';
 
 const STATUS_PIE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#ef4444', '#6366f1', '#14b8a6', '#84cc16'];
 
@@ -111,7 +111,7 @@ export default function Dashboard() {
   const recentActivities = data?.data?.recent_activities || [];
   const upcomingMeetings = data?.data?.upcoming_meetings || [];
   const subordinateStats = data?.data?.subordinate_stats || [];
-  const roleName = user?.role?.name?.toLowerCase?.() || '';
+  const roleName = getRoleKey(user);
   const canViewSubordinateStats = ['manager', 'admin'].includes(roleName) || Number(user?.role?.level || 0) >= 2;
 
   const pieData = leadStats.map(item => ({

@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import useAuthStore from './store/authStore';
+import useAuthStore, { getRoleKey } from './store/authStore';
 import Layout from './components/layout/Layout';
 import Login from './pages/auth/Login';
 import Dashboard from './pages/Dashboard';
@@ -18,8 +18,8 @@ function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && user?.role?.name) {
-    const userRole = user.role.name;
+  if (allowedRoles) {
+    const userRole = getRoleKey(user);
     if (!allowedRoles.includes(userRole)) {
       return <Navigate to="/dashboard" replace />;
     }

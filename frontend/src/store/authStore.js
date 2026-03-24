@@ -1,6 +1,56 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+const ROLE_KEY_BY_LEVEL = {
+  1: 'sales',
+  2: 'manager',
+  3: 'admin',
+};
+
+const ROLE_KEY_BY_ARABIC_NAME = {
+  'مندوب مبيعات': 'sales',
+  'مدير مباشر': 'manager',
+  'مدير عام': 'admin',
+};
+
+const ROLE_LEVEL_BY_KEY = {
+  sales: 1,
+  manager: 2,
+  admin: 3,
+};
+
+export const getRoleKey = (userOrRole) => {
+  const role = userOrRole?.role || userOrRole;
+  const roleName = String(role?.name || '').trim().toLowerCase();
+
+  if (ROLE_LEVEL_BY_KEY[roleName]) {
+    return roleName;
+  }
+
+  const roleNameAr = String(role?.name_ar || '').trim();
+  if (ROLE_KEY_BY_ARABIC_NAME[roleNameAr]) {
+    return ROLE_KEY_BY_ARABIC_NAME[roleNameAr];
+  }
+
+  const level = Number(role?.level || 0);
+  return ROLE_KEY_BY_LEVEL[level] || 'sales';
+};
+
+const normalizeUser = (user) => {
+  if (!user?.role) return user;
+
+  const roleKey = getRoleKey(user);
+
+  return {
+    ...user,
+    role: {
+      ...user.role,
+      name: roleKey,
+      level: Number(user.role.level || ROLE_LEVEL_BY_KEY[roleKey] || 1),
+    },
+  };
+};
+
 const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -10,7 +60,7 @@ const useAuthStore = create(
 
       login: (user, token) => {
         localStorage.setItem('token', token);
-        set({ user, token, isAuthenticated: true });
+        set({ user: normalizeUser(user), token, isAuthenticated: true });
       },
 
       logout: () => {
@@ -20,14 +70,24 @@ const useAuthStore = create(
       },
 
       updateUser: (userData) => {
-        set((state) => ({ user: { ...state.user, ...userData } }));
+        set((state) => ({
+          user: normalizeUser({
+            ...state.user,
+            ...userData,
+            role: {
+              ...state.user?.role,
+              ...userData?.role,
+            },
+          }),
+        }));
       },
 
       // Check role helpers
-      isAdmin: () => get().user?.role?.name === 'admin',
-      isManager: () => get().user?.role?.name === 'manager',
-      isSales: () => get().user?.role?.name === 'sales',
-      getLevel: () => get().user?.role?.level || 1,
+      isAdmin: () => getRoleKey(get().user) === 'admin',
+      isManager: () => getRoleKey(get().user) === 'manager',
+      isSales: () => getRoleKey(get().user) === 'sales',
+      getLevel: () => Number(get().user?.role?.level || ROLE_LEVEL_BY_KEY[getRoleKey(get().user)] || 1),
+      getRoleKey: () => getRoleKey(get().user),
       getRoleName: () => get().user?.role?.name_ar || '',
     }),
     {
@@ -37,6 +97,17 @@ const useAuthStore = create(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
+      merge: (persistedState, currentState) => {
+        const mergedState = {
+          ...currentState,
+          ...(persistedState || {}),
+        };
+
+        return {
+          ...mergedState,
+          user: normalizeUser(mergedState.user),
+        };
+      },
     }
   )
 );
