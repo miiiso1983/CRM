@@ -26,6 +26,75 @@ function StatCard({ icon: Icon, label, value, color, sub }) {
   );
 }
 
+function SubordinateStatsSection({ data = [] }) {
+  return (
+    <div className="card">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h3 className="font-bold text-gray-900 flex items-center gap-2">
+          <TrendingUp size={18} className="text-primary-600" /> إحصائيات أداء المرؤوسين
+        </h3>
+        <span className="text-xs text-gray-400">تحديث تلقائي كل دقيقة</span>
+      </div>
+
+      {data.length > 0 ? (
+        <>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 text-gray-500">
+                  <th className="py-3 px-3 text-right font-semibold">المندوب</th>
+                  <th className="py-3 px-3 text-right font-semibold">مكالمات اليوم</th>
+                  <th className="py-3 px-3 text-right font-semibold">العملاء المهتمون</th>
+                  <th className="py-3 px-3 text-right font-semibold">العملاء الجدد هذا الشهر</th>
+                  <th className="py-3 px-3 text-right font-semibold">المتعاقدون</th>
+                  <th className="py-3 px-3 text-right font-semibold">متابعات اليوم</th>
+                  <th className="py-3 px-3 text-right font-semibold">إجمالي العملاء</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((member) => (
+                  <tr key={member.id} className="border-b border-gray-50 last:border-0">
+                    <td className="py-3 px-3 font-semibold text-gray-900">{member.name}</td>
+                    <td className="py-3 px-3 text-gray-700">{member.calls_today}</td>
+                    <td className="py-3 px-3 text-gray-700">{member.interested_leads}</td>
+                    <td className="py-3 px-3 text-gray-700">{member.new_leads_this_month}</td>
+                    <td className="py-3 px-3 text-gray-700">{member.contracted_leads}</td>
+                    <td className="py-3 px-3 text-gray-700">{member.follow_ups_due_today}</td>
+                    <td className="py-3 px-3 text-gray-700">{member.total_assigned_leads}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 md:hidden">
+            {data.map((member) => (
+              <div key={member.id} className="rounded-2xl border border-gray-100 p-4 bg-gray-50/70">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-bold text-gray-900">{member.name}</h4>
+                  <span className="text-xs px-2 py-1 rounded-full bg-white text-gray-600 border border-gray-200">
+                    {member.total_assigned_leads} عميل
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div><p className="text-gray-400">مكالمات اليوم</p><p className="font-bold text-gray-900">{member.calls_today}</p></div>
+                  <div><p className="text-gray-400">العملاء المهتمون</p><p className="font-bold text-gray-900">{member.interested_leads}</p></div>
+                  <div><p className="text-gray-400">الجدد هذا الشهر</p><p className="font-bold text-gray-900">{member.new_leads_this_month}</p></div>
+                  <div><p className="text-gray-400">المتعاقدون</p><p className="font-bold text-gray-900">{member.contracted_leads}</p></div>
+                  <div><p className="text-gray-400">متابعات اليوم</p><p className="font-bold text-gray-900">{member.follow_ups_due_today}</p></div>
+                  <div><p className="text-gray-400">إجمالي العملاء</p><p className="font-bold text-gray-900">{member.total_assigned_leads}</p></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <p className="text-sm text-gray-400 text-center py-6">لا يوجد مندوبون تابعون لعرض الإحصائيات حالياً</p>
+      )}
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { user } = useAuthStore();
   const { data, isLoading } = useQuery({
@@ -41,6 +110,8 @@ export default function Dashboard() {
   const monthlyTrend = data?.data?.monthly_trend || [];
   const recentActivities = data?.data?.recent_activities || [];
   const upcomingMeetings = data?.data?.upcoming_meetings || [];
+  const subordinateStats = data?.data?.subordinate_stats || [];
+  const canViewSubordinateStats = ['manager', 'admin'].includes(user?.role?.name);
 
   const pieData = leadStats.map(item => ({
     name: STATUS_LABELS[item.status] || item.status,
@@ -64,6 +135,8 @@ export default function Dashboard() {
         <StatCard icon={CheckCircle} label="تم التعاقد" value={stats.contracted || 0} color="bg-emerald-500" sub={`${stats.conversion_rate || 0}% نسبة التحويل`} />
         <StatCard icon={AlertCircle} label="متابعة اليوم" value={stats.today_follow_ups || 0} color="bg-amber-500" sub="يستوجب الاتصال" />
       </div>
+
+      {canViewSubordinateStats && <SubordinateStatsSection data={subordinateStats} />}
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

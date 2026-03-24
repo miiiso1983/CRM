@@ -15,6 +15,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Map<String, dynamic>? _stats;
   List<dynamic> _recentLeads = [];
   List<dynamic> _upcomingMeetings = [];
+  List<dynamic> _subordinateStats = [];
   bool _isLoading = true;
   String? _error;
 
@@ -33,8 +34,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ApiService.get('/meetings', params: {'status': 'scheduled', 'limit': '5'}),
       ]);
       setState(() {
-        final dashData = results[0]['data'] ?? results[0];
-        _stats = dashData['summary'] ?? dashData['stats'] ?? dashData;
+        final dashboardData = results[0]['data'] ?? results[0];
+        _stats = dashboardData['summary'] ?? dashboardData['stats'] ?? dashboardData;
+        _subordinateStats = dashboardData['subordinate_stats'] ?? [];
         _recentLeads = results[1]['leads'] ?? results[1]['data'] ?? [];
         _upcomingMeetings = results[2]['meetings'] ?? results[2]['data'] ?? [];
         _isLoading = false;
@@ -82,7 +84,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         child: Row(children: [
           CircleAvatar(
-            backgroundColor: Colors.white.withOpacity(0.3),
+            backgroundColor: Colors.white.withValues(alpha: 0.3),
             radius: 28,
             child: Text(
               auth.user?.name.substring(0, 1) ?? '?',
@@ -105,6 +107,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const Text('الإحصائيات', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
         const SizedBox(height: 12),
         _buildStatsGrid(),
+        const SizedBox(height: 20),
+      ],
+
+      if (auth.isManager || auth.isAdmin) ...[
+        const Text('إحصائيات أداء المرؤوسين', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
+        const SizedBox(height: 8),
+        _buildSubordinateStatsSection(),
         const SizedBox(height: 20),
       ],
 
@@ -149,9 +158,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
+            color: color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withOpacity(0.2)),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Icon(item['icon'] as IconData, color: color, size: 28),
@@ -164,6 +173,125 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildSubordinateStatsSection() {
+    if (_subordinateStats.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: const Text(
+          'لا يوجد مندوبون تابعون لعرض الإحصائيات حالياً',
+          style: TextStyle(fontFamily: 'Cairo', color: Colors.grey),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    return Column(
+      children: _subordinateStats
+          .map((member) => _buildTeamMemberCard(Map<String, dynamic>.from(member)))
+          .toList(),
+    );
+  }
+
+  Widget _buildTeamMemberCard(Map<String, dynamic> member) {
+    final metrics = [
+      {'label': 'مكالمات اليوم', 'value': member['calls_today'] ?? 0, 'icon': Icons.phone_in_talk, 'color': Colors.blue},
+      {'label': 'العملاء المهتمون', 'value': member['interested_leads'] ?? 0, 'icon': Icons.favorite_outline, 'color': Colors.pink},
+      {'label': 'الجدد هذا الشهر', 'value': member['new_leads_this_month'] ?? 0, 'icon': Icons.person_add_alt_1, 'color': Colors.green},
+      {'label': 'المتعاقدون', 'value': member['contracted_leads'] ?? 0, 'icon': Icons.verified_outlined, 'color': Colors.teal},
+      {'label': 'متابعات اليوم', 'value': member['follow_ups_due_today'] ?? 0, 'icon': Icons.schedule, 'color': Colors.orange},
+      {'label': 'إجمالي العملاء', 'value': member['total_assigned_leads'] ?? 0, 'icon': Icons.groups_2_outlined, 'color': Colors.deepPurple},
+    ];
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: const Color(kPrimaryBlue).withValues(alpha: 0.1),
+                  child: Text(
+                    (member['name'] ?? '?').toString().substring(0, 1),
+                    style: const TextStyle(color: Color(kPrimaryBlue), fontFamily: 'Cairo'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    member['name'] ?? '',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Cairo', fontSize: 15),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 1.9,
+              ),
+              itemCount: metrics.length,
+              itemBuilder: (_, index) {
+                final metric = metrics[index];
+                return _buildTeamMetricTile(
+                  label: metric['label'] as String,
+                  value: metric['value'],
+                  icon: metric['icon'] as IconData,
+                  color: metric['color'] as Color,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTeamMetricTile({
+    required String label,
+    required dynamic value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 18),
+          const Spacer(),
+          Text(
+            '$value',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color, fontFamily: 'Cairo'),
+          ),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: Colors.grey[700], fontFamily: 'Cairo'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLeadTile(Map<String, dynamic> lead) {
     final status = lead['status'] ?? 'new';
     final label = kStatusLabels[status] ?? status;
@@ -171,7 +299,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: const Color(kPrimaryBlue).withOpacity(0.1),
+          backgroundColor: const Color(kPrimaryBlue).withValues(alpha: 0.1),
           child: Text(
             (lead['name'] ?? '?').toString().substring(0, 1),
             style: const TextStyle(color: Color(kPrimaryBlue), fontFamily: 'Cairo'),
@@ -181,7 +309,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         subtitle: Text(lead['phone'] ?? '', style: const TextStyle(fontFamily: 'Cairo', fontSize: 12)),
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
           child: Text(label, style: const TextStyle(fontSize: 11, color: Colors.blue, fontFamily: 'Cairo')),
         ),
       ),

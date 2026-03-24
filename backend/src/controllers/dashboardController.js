@@ -1,6 +1,6 @@
-const { Op, fn, col, literal } = require('sequelize');
+const { Op, fn, col } = require('sequelize');
 const { sequelize } = require('../config/database');
-const { Lead, User, Meeting, LeadActivity, Notification } = require('../models');
+const { Lead, User, Meeting, LeadActivity } = require('../models');
 const { successResponse } = require('../utils/helpers');
 
 // @GET /api/dashboard
@@ -9,7 +9,8 @@ const getDashboard = async (req, res, next) => {
     const user = req.user;
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const todayDate = now.toISOString().split('T')[0];
     const where = {};
 
     if (user.role.name === 'sales') where.assigned_to = user.id;
@@ -25,7 +26,7 @@ const getDashboard = async (req, res, next) => {
 
     const totalLeads = await Lead.count({ where });
     const thisMonthLeads = await Lead.count({
-      where: { ...where, created_at: { [Op.between]: [startOfMonth, endOfMonth] } },
+      where: { ...where, created_at: { [Op.gte]: startOfMonth, [Op.lt]: startOfNextMonth } },
     });
 
     const contracted = await Lead.count({ where: { ...where, status: 'contracted' } });
@@ -45,8 +46,68 @@ const getDashboard = async (req, res, next) => {
 
     // Follow-up reminders
     const todayFollowUps = await Lead.count({
-      where: { ...where, follow_up_date: new Date().toISOString().split('T')[0] },
+      where: { ...where, follow_up_date: todayDate },
     });
+
+    // Direct subordinates performance for managers/admins
+    let subordinateStats = [];
+    if (['manager', 'admin'].includes(user.role.name)) {
+      const subordinateWhereClause = user.role.name === 'manager' ? 'AND u.manager_id = :managerId' : '';
+      const replacements = {
+        todayDate,
+        startOfMonth,
+        startOfNextMonth,
+        ...(user.role.name === 'manager' ? { managerId: user.id } : {}),
+      };
+
+      const [rows] = await sequelize.query(`
+        SELECT
+          u.id,
+          u.name,
+          COALESCE(c.calls_today, 0) AS calls_today,
+          COALESCE(ls.interested_leads, 0) AS interested_leads,
+          COALESCE(ls.new_leads_this_month, 0) AS new_leads_this_month,
+          COALESCE(ls.contracted_leads, 0) AS contracted_leads,
+          COALESCE(ls.follow_ups_due_today, 0) AS follow_ups_due_today,
+          COALESCE(ls.total_assigned_leads, 0) AS total_assigned_leads
+        FROM users u
+        INNER JOIN roles r ON r.id = u.role_id AND r.name = 'sales'
+        LEFT JOIN (
+          SELECT
+            user_id,
+            COUNT(*) AS calls_today
+          FROM lead_activities
+          WHERE type = 'call' AND DATE(created_at) = :todayDate
+          GROUP BY user_id
+        ) c ON c.user_id = u.id
+        LEFT JOIN (
+          SELECT
+            assigned_to,
+            SUM(CASE WHEN status = 'interested' THEN 1 ELSE 0 END) AS interested_leads,
+            SUM(CASE WHEN created_at >= :startOfMonth AND created_at < :startOfNextMonth THEN 1 ELSE 0 END) AS new_leads_this_month,
+            SUM(CASE WHEN status = 'contracted' THEN 1 ELSE 0 END) AS contracted_leads,
+            SUM(CASE WHEN follow_up_date = :todayDate THEN 1 ELSE 0 END) AS follow_ups_due_today,
+            COUNT(*) AS total_assigned_leads
+          FROM leads
+          WHERE assigned_to IS NOT NULL
+          GROUP BY assigned_to
+        ) ls ON ls.assigned_to = u.id
+        WHERE u.is_active = 1
+        ${subordinateWhereClause}
+        ORDER BY COALESCE(ls.total_assigned_leads, 0) DESC, u.name ASC
+      `, { replacements });
+
+      subordinateStats = rows.map((row) => ({
+        id: Number(row.id),
+        name: row.name,
+        calls_today: Number(row.calls_today || 0),
+        interested_leads: Number(row.interested_leads || 0),
+        new_leads_this_month: Number(row.new_leads_this_month || 0),
+        contracted_leads: Number(row.contracted_leads || 0),
+        follow_ups_due_today: Number(row.follow_ups_due_today || 0),
+        total_assigned_leads: Number(row.total_assigned_leads || 0),
+      }));
+    }
 
     // Recent activities
     const recentActivities = await LeadActivity.findAll({
@@ -67,12 +128,12 @@ const getDashboard = async (req, res, next) => {
           SELECT u.id, u.name, COUNT(l.id) as total_leads
           FROM users u
           LEFT JOIN leads l ON l.assigned_to = u.id
-            AND l.created_at BETWEEN :startOfMonth AND :endOfMonth
+            AND l.created_at >= :startOfMonth AND l.created_at < :startOfNextMonth
           GROUP BY u.id, u.name
           ORDER BY total_leads DESC
           LIMIT 10
         `, {
-          replacements: { startOfMonth, endOfMonth },
+          replacements: { startOfMonth, startOfNextMonth },
         });
         teamPerformance = rows;
       } catch (e) {
@@ -87,8 +148,8 @@ const getDashboard = async (req, res, next) => {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
       const start = new Date(d.getFullYear(), d.getMonth(), 1);
-      const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-      const count = await Lead.count({ where: { ...where, created_at: { [Op.between]: [start, end] } } });
+      const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      const count = await Lead.count({ where: { ...where, created_at: { [Op.gte]: start, [Op.lt]: end } } });
       monthlyTrend.push({
         month: start.toLocaleString('ar-SA', { month: 'short', year: 'numeric' }),
         count,
@@ -109,6 +170,7 @@ const getDashboard = async (req, res, next) => {
         upcoming_meetings: upcomingMeetings,
         recent_activities: recentActivities,
         monthly_trend: monthlyTrend,
+        subordinate_stats: subordinateStats,
         team_performance: teamPerformance,
       },
     });
