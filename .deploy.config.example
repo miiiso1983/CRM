@@ -22,6 +22,10 @@ SSH_KEY=~/.ssh/id_rsa                      # مثال: ~/.ssh/cloudways_key
 # المسار الكامل لمجلد التطبيق (غير هذا ليطابق اسم تطبيقك)
 REMOTE_APP_PATH=/home/master/applications/YOUR_APP_FOLDER_NAME
 
+# إذا كان مسار الواجهة المقدم للعامة مختلفًا عن مسار الباكند، يمكنك تحديدهما صراحةً:
+# REMOTE_FRONTEND_PATH=/home/APP_DOMAIN/APP_ID/public_html
+# REMOTE_BACKEND_PATH=/home/master/applications/YOUR_APP_FOLDER_NAME/backend
+
 # ===== Database (for .env on server) =====
 # من: Cloudways → Application → Database
 DB_NAME=alteam_crm

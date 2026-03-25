@@ -61,13 +61,15 @@ fi
 
 # ============ التحقق من الإعدادات الأساسية ============
 [ -z "$SSH_HOST" ]          && log_error "SSH_HOST غير محدد في .deploy.config"
-[ -z "$REMOTE_APP_PATH" ]   && log_error "REMOTE_APP_PATH غير محدد في .deploy.config"
+if [ -z "$REMOTE_APP_PATH" ] && { [ -z "$REMOTE_FRONTEND_PATH" ] || [ -z "$REMOTE_BACKEND_PATH" ]; }; then
+    log_error "حدد REMOTE_APP_PATH أو كلًا من REMOTE_FRONTEND_PATH و REMOTE_BACKEND_PATH في .deploy.config"
+fi
 SSH_KEY="${SSH_KEY/#\~/$HOME}"
 [ ! -f "$SSH_KEY" ]         && log_error "مفتاح SSH غير موجود: $SSH_KEY"
 
 # ============ المتغيرات المشتقة ============
-REMOTE_PUBLIC_HTML="$REMOTE_APP_PATH/public_html"
-REMOTE_BACKEND="$REMOTE_APP_PATH/backend"
+REMOTE_PUBLIC_HTML="${REMOTE_FRONTEND_PATH:-$REMOTE_APP_PATH/public_html}"
+REMOTE_BACKEND="${REMOTE_BACKEND_PATH:-$REMOTE_APP_PATH/backend}"
 SSH_OPTS="-p $SSH_PORT -i $SSH_KEY -o StrictHostKeyChecking=no -o ConnectTimeout=15"
 SSH_CMD="ssh $SSH_OPTS $SSH_USER@$SSH_HOST"
 RSYNC_SSH="rsync -avz --progress -e 'ssh $SSH_OPTS'"
@@ -88,7 +90,8 @@ echo -e "${BLUE}║     Al Team CRM — SSH Deployment Script      ║${NC}"
 echo -e "${BLUE}╠══════════════════════════════════════════════╣${NC}"
 echo -e "${BLUE}║${NC}  🌐 Host : ${CYAN}$SSH_HOST:$SSH_PORT${NC}"
 echo -e "${BLUE}║${NC}  👤 User : ${CYAN}$SSH_USER${NC}"
-echo -e "${BLUE}║${NC}  📁 Path : ${CYAN}$REMOTE_APP_PATH${NC}"
+echo -e "${BLUE}║${NC}  📄 Front: ${CYAN}$REMOTE_PUBLIC_HTML${NC}"
+echo -e "${BLUE}║${NC}  ⚙️  Back : ${CYAN}$REMOTE_BACKEND${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -113,7 +116,7 @@ fi
 if [ "$DEPLOY_FRONTEND" = true ]; then
     log_step "3. رفع Frontend → $REMOTE_PUBLIC_HTML"
     $SSH_CMD "mkdir -p $REMOTE_PUBLIC_HTML"
-    rsync -avz --progress --delete \
+    rsync -avz --progress --delete --omit-dir-times \
         -e "ssh $SSH_OPTS" \
         "$SCRIPT_DIR/frontend/dist/" \
         "$SSH_USER@$SSH_HOST:$REMOTE_PUBLIC_HTML/"
