@@ -18,8 +18,16 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await authAPI.login(data);
-      login(res.user, res.token);
-      toast.success(`مرحباً ${res.user.name} 👋`);
+      const payload = res?.data ?? res;
+      const user = payload?.user;
+      const token = payload?.token;
+
+      if (!user || !token) {
+        throw new Error('استجابة تسجيل الدخول غير مكتملة');
+      }
+
+      login(user, token);
+      toast.success(`مرحباً ${user.name || user.email || ''} 👋`);
       navigate('/dashboard');
     } catch (err) {
       toast.error(err.message || 'فشل تسجيل الدخول');
